@@ -1,0 +1,9 @@
+[package]
+name = "ffreader"
+description = "Flat File Reader Utility Library"
+authors = ["Maxwell French <maxwell@frenchnet.org"]
+repository = "https://github.com/maxwell-fr/ffreader"
+license = "BSD-3-Clause"
+version = "0.1.1"
+edition = "2021"
+readme = "README.md"
