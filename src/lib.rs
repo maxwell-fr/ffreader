@@ -7,6 +7,16 @@
 //! - Field definitions based on column offset.
 //! - Custom post-processing callbacks for each field.
 //! - CSV and JSON output.
+//!
+//! Currently only ASCII text is supported.
+//!
+//! Usage is intended to be simple:
+//! 1. Create any post-processing (validation and/or alteration) functions needed
+//! 2. Create a `Vec` of `DataFieldDef` objects describing the fields and assigning post-processing functions
+//! 3. Use `DataFile::try_load()` to open and process your file.
+//! 4. Do what you need to with the data obtained. For example, you could obtain a subset of fields and
+//! turn them into a CSV-formatted file using `DataFile::get_ordered_fields()`, use the rows directly
+//! with `DataFile::rows()`, or check for problems with `DataFile::warnings()`.
 
 mod datafield;
 mod datarow;

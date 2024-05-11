@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 
-/// Contains a datafield, including name, raw data, and processes data (if any).
+/// Contains a datafield, including name, raw data, and processed data (if any).
 #[derive(Debug, Clone)]
 pub struct DataField {
     name: String,
@@ -44,7 +44,10 @@ impl Error for DataFieldError { }
 /// Convenient Result shorthand for DataFieldError Results.
 pub type Result<T> = std::result::Result<T, DataFieldError>;
 
-/// Holds details pertaining to the structure of a row and the desired post-processing function.
+/// Holds details pertaining to the structure of a field and the desired post-processing function.
+///
+/// A DataFieldDef is used to extract a DataField from a row of data, and performs post-processing
+/// using the provided post_process function.
 pub struct DataFieldDef<'a> {
     /// The name of the field.
     pub name: String,
@@ -67,6 +70,16 @@ impl Display for DataFieldDef<'_> {
 
 impl DataFieldDef<'_> {
     /// Convenience function to instantiate a new DataFieldDef with the provided data.
+    /// Note the post-process function; this returns a DataFieldResult.
+    /// ```
+    /// use ffreader::{DataFieldResult, DataFieldDef};
+    /// fn post_function(value: String) -> DataFieldResult<String> {
+    ///     Ok(value) // does nothing; demo purposes only
+    /// }
+    /// let field_def_1 = DataFieldDef::new("Field_1", 0, 11, &post_function);
+    /// ```
+    /// typically you would have several of these, once for each field, with different
+    /// (non-overlapping) ranges.
     pub fn new(name: impl ToString, start_idx: usize, end_idx: usize,
                post_process: &dyn Fn(String)-> Result<String>) -> DataFieldDef {
         DataFieldDef {
@@ -96,6 +109,8 @@ impl DataField {
     }
 
     /// Try to create a DataField from a row using the provided data field definition.
+    /// This can fail, if the row doesn't meet certain criteria (e.g., if it's too short for the
+    /// field definition, or isn't ASCII, or if the post_process function fails.
     pub fn try_from_row(row: &str, field_def: &DataFieldDef) -> Result<DataField>
     {
         //fields can be optional and result in lines that are short

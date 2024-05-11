@@ -39,7 +39,16 @@ pub type Result<T> = std::result::Result<T, DataFileError>;
 
 impl DataFile {
     /// Attempt to load a file and parse its rows and fields.
+    ///
+    /// A vec of DataFieldDefs is expected; these will be applied to each row.
     /// Non-fatal issues are included in the DataFile as a list of LoadWarnings.
+    /// Non-fatal issues include post process errors, row too short, and so on.
+    /// A single field failing post process will cause the row to be skipped in the output
+    /// and a warning added, so post process can be used as a validator.
+    ///
+    /// This method should ensure a decent level of tolerance for non-data lines such as
+    /// headers, boilerplate metadata, and such. It can also be used as a way to filter
+    /// rows meeting certain criteria.
     pub fn try_load(path: &Path, row_defs: &Vec<DataFieldDef>) -> Result<DataFile> {
         let data = fs::read_to_string(path);
         if let Err(e) = data {
@@ -77,8 +86,10 @@ impl DataFile {
         &self.load_warnings
     }
 
-    /// Generator a json version of the data
-    /// This function works for this specific data; no guarantees elsewhere.
+    /// Generate a json version of the data.
+    ///
+    /// This function works for basic data but should be checked for more complex cases
+    /// todo: build test suite for this function and improve robustness
     pub fn jsonify(&self) -> String {
         let mut json_row_list = vec![];
         for row in &self.rows {

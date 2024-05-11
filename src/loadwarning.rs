@@ -8,6 +8,8 @@ pub struct LoadWarning {
 
 impl LoadWarning {
     /// Instantiates a new LoadWarning
+    /// A LoadWarning simply contains the line number of the problem and a message
+    /// describing the issue.
     pub fn new(line_index: usize, message: Box<dyn Display>) -> LoadWarning {
         LoadWarning {
             line_index,

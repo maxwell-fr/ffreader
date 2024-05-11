@@ -67,7 +67,29 @@ impl DataRow {
         })
     }
 
-    /// Get a copy of the row with specified fields in order
+    /// Get a copy of the row with specified fields in order. This is useful for constructing
+    /// certain output formats, e.g., CSV.
+    ///
+    /// ```
+    /// use ffreader::{DataRow, DataFieldDef, DataFieldResult};
+    /// fn post_function(value: String) -> DataFieldResult<String> {
+    ///     Ok(value) // does nothing; demo purposes only
+    /// }
+    /// let field_defs = vec![
+    ///     DataFieldDef::new("field1", 0, 2, &post_function),
+    ///     DataFieldDef::new("field2", 2, 4, &post_function),
+    ///     DataFieldDef::new("field3", 4, 6, &post_function),
+    ///     DataFieldDef::new("field4", 6, 8, &post_function)
+    /// ];
+    /// // todo: fix the padded length once MINIMUM_LENGTH is made configurable
+    /// let raw_row = "abcdefgh...............................................................................................................................................................................";
+    /// let row = DataRow::try_create(raw_row, &field_defs).unwrap();
+    /// let fields = vec!["field3", "field1", "field2"];
+    /// let ordered_row = row.get_ordered_fields(&fields).unwrap()
+    ///                         .iter().map(|f| f.data())
+    ///                         .collect::<Vec<String>>().join(" ");
+    /// assert_eq!(ordered_row, "ef ab cd");
+    /// ```
     pub fn get_ordered_fields(&self, field_list: &Vec<&str>) -> Result<Vec<DataField>>{
         let mut list = vec![];
 
@@ -95,7 +117,7 @@ mod tests {
     use super::*;
 
     fn test_row() -> String {
-        String::from("5412345678  54     1   123 TEST OWNER            5412345678                           5412345678001  54    4    1  Z              5412345678           TEST AVE ABC              000075                      0-0001-111.000            0        R")
+        String::from("5412345678  54     1   123 TEST PERSN            5412345678                           5412345678001  54    4    1  Z              5412345678           TEST AVE ABC              000075                      0-0001-111.000            0        R")
     }
 
     fn echo_ok(s: String) -> DataFieldResult<String> { Ok(s) }
@@ -105,23 +127,23 @@ mod tests {
             DataFieldDef::new("AccountNo1", 0, 11, &echo_ok),
             DataFieldDef::new("CyclNo1", 11, 16, &echo_ok),
             DataFieldDef::new("Status", 16, 23, &echo_ok),
-            DataFieldDef::new("OwnerName", 23, 49, &echo_ok),
-            DataFieldDef::new("PropAddrKey", 49, 60, &echo_ok),
-            DataFieldDef::new("AddrLine2", 60, 86, &echo_ok),
-            DataFieldDef::new("MeterID", 86, 100, &echo_ok),
-            DataFieldDef::new("CyclNo2", 100, 105, &echo_ok),
-            DataFieldDef::new("ReadDigits", 105, 110, &echo_ok),
+            DataFieldDef::new("Demo_Name", 23, 49, &echo_ok),
+            DataFieldDef::new("DemoTestKey", 49, 60, &echo_ok),
+            DataFieldDef::new("DemoLine2", 60, 86, &echo_ok),
+            DataFieldDef::new("ThingID", 86, 100, &echo_ok),
+            DataFieldDef::new("Cycle12", 100, 105, &echo_ok),
+            DataFieldDef::new("DemoLength", 105, 110, &echo_ok),
             DataFieldDef::new("No", 110, 114, &echo_ok),
             DataFieldDef::new("Type", 114, 119, &echo_ok),
-            DataFieldDef::new("ARB", 119, 130, &echo_ok),
-            DataFieldDef::new("FileKey", 130, 141, &echo_ok),
+            DataFieldDef::new("TST", 119, 130, &echo_ok),
+            DataFieldDef::new("TestKey", 130, 141, &echo_ok),
             DataFieldDef::new("StreetDirection", 141, 151, &echo_ok),
             DataFieldDef::new("StreetName", 151, 177, &echo_ok),
             DataFieldDef::new("StreetNumber", 177, 184, &echo_ok),
             DataFieldDef::new("StreetUnit", 184, 191, &echo_ok),
-            DataFieldDef::new("MeterSerial", 191, 205, &echo_ok),
-            DataFieldDef::new("PrintKey", 205, 231, &echo_ok),
-            DataFieldDef::new("MeterSize", 231, 237, &echo_ok),
+            DataFieldDef::new("ThingSerial", 191, 205, &echo_ok),
+            DataFieldDef::new("Test_Key", 205, 231, &echo_ok),
+            DataFieldDef::new("ThingSize", 231, 237, &echo_ok),
             DataFieldDef::new("Special", 237, 242, &echo_ok)
         ]
     }
@@ -135,10 +157,10 @@ mod tests {
 
         let fields = datarow.fields();
 
-        assert_eq!(fields.iter().find(|s| s.name() == "MeterID").unwrap().data(), "5412345678001");
+        assert_eq!(fields.iter().find(|s| s.name() == "ThingID").unwrap().data(), "5412345678001");
         assert_eq!(fields.iter().find(|s| s.name() == "AccountNo1").unwrap().data(), "5412345678");
         assert_eq!(fields.iter().find(|s| s.name() == "Special").unwrap().data(), "R");
-        assert_eq!(fields.iter().find(|s| s.name() == "MeterSize").unwrap().data(), "0");
-        assert_eq!(fields.iter().find(|s| s.name() == "OwnerName").unwrap().data(), "123 TEST OWNER");
+        assert_eq!(fields.iter().find(|s| s.name() == "ThingSize").unwrap().data(), "0");
+        assert_eq!(fields.iter().find(|s| s.name() == "Demo_Name").unwrap().data(), "123 TEST PERSN");
     }
 }
